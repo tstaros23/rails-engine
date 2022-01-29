@@ -7,39 +7,7 @@ orbs:
   node: circleci/node@2
 
 jobs:
-  build: # our first job, named "build"
-    docker:
-      - image: cimg/ruby:2.7.2-node # use a tailored CircleCI docker image.
-        # auth:
-        #   username: mydockerhub-user
-        #   password: $DOCKERHUB_PASSWORD  # context / project UI env-var reference
-    steps:
-      - checkout # pull down our git code.
-      - run:
-          name: Force Bundler Version
-          command: |
-            echo 'export BUNDLER_VERSION=$(cat Gemfile.lock | tail -1 | tr -d " ")' >> $BASH_ENV
-            source $BASH_ENV
-            gem install bundler
-      - run:
-          name: Which bundler?
-          command: bundle -v
-      # Restore bundle cache
-      # Read about caching dependencies: https://circleci.com/docs/2.0/caching/
-      - restore_cache:
-          keys:
-            - fast-inlet-74665-bundle-v2-{{ checksum "Gemfile.lock" }}
-            - fast-inlet-74665-bundle-v2-
-      - run: # Install Ruby dependencies
-          name: Bundle Install
-          command: bundle install
-      # Store bundle cache for Ruby dependencies
-      - save_cache:
-          key: fast-inlet-74665-bundle-v2-{{ checksum "Gemfile.lock" }}
-          paths:
-            - vendor/bundle
-
-  test:  # our next job, called "test"
+  build:  # our next job, called "test"
     # we run "parallel job containers" to enable speeding up our tests;
     # this splits our tests across multiple containers.
     parallelism: 1
@@ -112,6 +80,3 @@ workflows:
   build_and_test:     # The name of our workflow is "build_and_test"
     jobs:             # The list of jobs we run as part of this workflow.
       - build         # Run build first.
-      - test:         # Then run test,
-          requires:   # Test requires that build passes for it to run.
-            - build   # Finally, run the build job.
